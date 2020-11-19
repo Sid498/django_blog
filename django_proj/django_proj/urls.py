@@ -18,6 +18,7 @@ from django.urls import path, include
 from users import views as user_views
 from django.conf.urls.static import static
 from django.conf import settings
+from blog import views as blog_views
 from django.contrib.auth import views as auth_view
 
 urlpatterns = [
@@ -26,7 +27,19 @@ urlpatterns = [
     path('profile', user_views.profile, name='profile'),
     path('login', auth_view.LoginView.as_view(template_name='login.html'), name='login'),
     path('logout', auth_view.LogoutView.as_view(template_name='logout.html'), name='logout'),
+    path('password-reset', auth_view.PasswordResetView.as_view(template_name='password_reset.html'),
+         name='password_reset'),
+    path('password-reset-confirm/<uidb64>/<token>/', auth_view.PasswordResetConfirmView.as_view(template_name='password_reset_confirm.html'),
+        name='password_reset_confirm'),
+    path('password-reset/done/', auth_view.PasswordResetDoneView.as_view(template_name='password_reset_done.html'),
+        name='password_reset_done'),
+    path('password-rest-complete/', auth_view.PasswordResetCompleteView.as_view(template_name='password_reset_complete.html'),
+        name='password_reset_complete'),
+    
     path('', include('blog.urls')),
+    path('view/', blog_views.view_post),
+    path('view/<int:post_id>', blog_views.view_post),
+    path('add_post/', blog_views.add_post),
 ]
 
 if settings.DEBUG:
