@@ -1,6 +1,7 @@
 {% extends 'blog/base.html' %}
 
 {% block content %}
+
     <article class="media content-section">
         <img class="rounded-circle article-img" src="{{ object.author.profile.image.url }}">
         <div class="media-body">
@@ -15,7 +16,20 @@
                         <a class="btn sm btn btn-secondary mb-1" href="{% url 'post_update' object.id %}">Update</a>
                         <a class="btn sm btn btn-danger mb-1" href="{% url 'post_delete' object.id %}">Delete</a>
                     </div>
+            {% endif %}
+            
+            <br/><br/>
+            <form action="{% url 'like_post' object.id %}" method="POST">
+                {% csrf_token %}
+                {% if liked %}
+                    <button class="btn btn-danger btn-sm" type="submit" name "post_id" value={{object.id}}>Unlike
+                    </button>
+                {% else %}
+                    <button class="btn btn-primary btn-sm" type="submit" name "post_id" value={{object.id}}>Like</button>
                 {% endif %}
+                 - {{ total_likes }}
+            </form>
+
         </div>
     </article>
     

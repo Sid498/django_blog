@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '7d3u1#*(8m7s0tcwh6njh)k!5u1q4+d4=j^-_t1!e5chz07+24'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['sidp.pythonanywhere.com', 'localhost']
 
 
 # Application definition
