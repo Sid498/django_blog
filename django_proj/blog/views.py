@@ -2,6 +2,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render, get_object_or_404, redirect, Http404
 from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail, BadHeaderError
 from django.views.decorators.csrf import csrf_exempt
 from blog_api.serializers import BlogSerializer
@@ -11,6 +12,7 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework import status
 from .forms import ContactForm
+from django.urls import reverse_lazy, reverse
 from .models import Post
 import os
 
@@ -48,6 +50,28 @@ class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
 
+    # def post(self, request, *args, **kwargs):
+    #     return HttpResponseRedirect(reverse('home'))
+    
+    def get_context_data(self, **kwargs):
+        if self.request.method == "POST":
+            print("method called")
+        context = super().get_context_data(**kwargs)
+        data = get_object_or_404(Post, id=self.kwargs['pk'])
+        total_likes = data.total_likes()
+        # if self.request.method == 'POST':
+        liked = False
+        if data.likes.filter(id=self.request.user.id).exists():
+            liked = True
+        else:
+            pass
+
+        context["total_likes"] = total_likes
+        context["liked"] = liked
+        return context
+    
+
+
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     template_name = 'blog/post_create.html'
@@ -57,7 +81,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
-
+    
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     fields = ['title', 'content']
@@ -93,7 +117,7 @@ def contactView(request):
             from_email = form.cleaned_data['email']
             message = form.cleaned_data['message']
             try:
-                send_mail(subject, message +" "+ from_email, "imurdad498@gmail.com", ["sidpawar619@gmail.com"])
+                send_mail(subject, message +" "+ from_email, os.environ.get('EMAIL_USER'), ["your_company_mail_here"]) #put reciever mail
             except BadHeaderError:
                 return HttpResponse('Invalid header found.')
             return redirect('success')
@@ -128,3 +152,16 @@ def add_post(request):
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return JsonResponse(serializer.data, safe=False)
+
+@login_required
+def LikeView(request,pk):
+    # post = get_object_or_404(Post, id=request.POST.get('post_id'))
+    post = Post.objects.get(id=pk)
+    liked = False
+    if post.likes.filter(id=request.user.id).exists():
+        post.likes.remove(request.user)
+        liked = False
+    else:
+        post.likes.add(request.user)
+        liked = True
+    return HttpResponseRedirect(reverse('post_detail', args=[str(pk)]))
